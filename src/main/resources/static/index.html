@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Свод по случаям оказания медицинской помощи</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EFF1EC;
+    --card: #FFFFFF;
+    --ink: #1E2A27;
+    --ink-soft: #4B5A56;
+    --teal: #2F6F62;
+    --teal-dark: #1E4A40;
+    --gold: #C98A2C;
+    --gold-dark: #A66F1F;
+    --line: #C9D0C8;
+    --error: #B3402A;
+    --error-bg: #FBEDE9;
+    --success-bg: #EAF2EC;
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px);
+    background-size: 100% 28px;
+    background-position: 0 96px;
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .eyebrow span:last-child {
+    color: var(--ink-soft);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 40px 40px 32px;
+    box-shadow: 0 1px 2px rgba(30, 42, 39, 0.04);
+  }
+
+  h1 {
+    font-family: 'Zilla Slab', serif;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 1.25;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0 0 22px;
+  }
+
+  .subtitle b {
+    color: var(--teal-dark);
+    font-weight: 600;
+  }
+
+  /* "ledger" — сигнатурный элемент, повторяет двойную линию строки
+     "Итого:" из самого генерируемого Excel-отчёта */
+  .ledger {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 10px 0;
+    margin-bottom: 28px;
+  }
+
+  .ledger-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 3px 0;
+    color: var(--ink-soft);
+  }
+
+  .ledger-row b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  button#generate {
+    width: 100%;
+    padding: 15px 20px;
+    background: var(--teal);
+    color: #F5F7F5;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background-color 0.15s ease;
+  }
+
+  button#generate:hover:not(:disabled) { background: var(--teal-dark); }
+
+  button#generate:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  button#generate:disabled {
+    background: var(--teal);
+    opacity: 0.7;
+    cursor: progress;
+  }
+
+  button#generate .icon { display: flex; }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(245, 247, 245, 0.35);
+    border-top-color: #F5F7F5;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 1.6s; }
+  }
+
+  .status {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    line-height: 1.5;
+    display: none;
+  }
+
+  .status.visible { display: block; }
+
+  .status.success {
+    background: var(--success-bg);
+    color: var(--teal-dark);
+    border: 1px solid #C7DCCF;
+  }
+
+  .status.error {
+    background: var(--error-bg);
+    color: var(--error);
+    border: 1px solid #E7C4BA;
+  }
+
+  footer {
+    margin-top: 18px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">
+    <span>Свод № <span id="doc-number"></span></span>
+    <span id="doc-date"></span>
+  </div>
+
+  <div class="card">
+    <h1>Отчёт по случаям оказания медицинской помощи</h1>
+    <p class="subtitle">Разбивка по иерархии <b>СМО → МО → МКБ</b> с количеством случаев на каждом уровне.</p>
+
+    <div class="ledger">
+      <div class="ledger-row"><span>Источник данных</span><b>test-data.db3</b></div>
+      <div class="ledger-row"><span>Отчётный период</span><b>2014 г.</b></div>
+      <div class="ledger-row"><span>Формат выгрузки</span><b>.xlsx</b></div>
+    </div>
+
+    <button id="generate" type="button">
+      <span class="icon" id="icon-slot">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1.5V10.5M8 10.5L4.5 7M8 10.5L11.5 7" stroke="#F5F7F5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2.5 12.5V13.5C2.5 13.5 2.5 14.5 3.5 14.5H12.5C12.5 14.5 13.5 14.5 13.5 13.5V12.5" stroke="#F5F7F5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span id="btn-label">Сформировать и скачать отчёт</span>
+    </button>
+
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <footer>мед-отчёт-сервис · GET /api/report</footer>
+</main>
+
+<script>
+  const btn = document.getElementById('generate');
+  const btnLabel = document.getElementById('btn-label');
+  const iconSlot = document.getElementById('icon-slot');
+  const statusEl = document.getElementById('status');
+
+  const iconDownload = iconSlot.innerHTML;
+  const iconSpinner = '<span class="spinner" aria-hidden="true"></span>';
+
+  // Псевдо-номер документа и дата — чисто оформительский штрих,
+  // подчёркивающий, что это "форма выгрузки", без функциональной нагрузки.
+  const now = new Date();
+  document.getElementById('doc-number').textContent =
+      now.getFullYear().toString() + '-' + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+  document.getElementById('doc-date').textContent =
+      now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  function setStatus(kind, text) {
+    statusEl.className = 'status visible ' + kind;
+    statusEl.textContent = text;
+  }
+
+  function clearStatus() {
+    statusEl.className = 'status';
+    statusEl.textContent = '';
+  }
+
+  function setLoading(isLoading) {
+    btn.disabled = isLoading;
+    iconSlot.innerHTML = isLoading ? iconSpinner : iconDownload;
+    btnLabel.textContent = isLoading ? 'Формируем отчёт…' : 'Сформировать и скачать отчёт';
+  }
+
+  btn.addEventListener('click', async () => {
+    clearStatus();
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/report');
+
+      if (!response.ok) {
+        let message = 'Сервис вернул ошибку (' + response.status + ')';
+        try {
+          const errorBody = await response.json();
+          if (errorBody && errorBody.message) {
+            message = errorBody.message;
+          }
+        } catch (_) { /* тело не JSON — оставляем сообщение по умолчанию */ }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'report.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setStatus('success', 'Отчёт сформирован и сохранён как report.xlsx.');
+    } catch (err) {
+      setStatus('error', 'Не удалось сформировать отчёт: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  });
+</script>
+</body>
+</html>
