@@ -1,12 +1,15 @@
 import axios from 'axios';
 
-export async function fetchReport() {
+export async function fetchReport(zip = false) {
   try {
-    const response = await axios.get('/api/report', { responseType: 'blob' });
+    const response = await axios.get('/api/report', {
+      responseType: 'blob',
+      params: zip ? { zip: true } : undefined,
+    });
 
     const disposition = response.headers['content-disposition'] || '';
     const match = disposition.match(/filename="?([^"]+)"?/);
-    const filename = match ? match[1] : 'report.xlsx';
+    const filename = match ? match[1] : (zip ? 'report.zip' : 'report.xlsx');
 
     return { blob: response.data, filename };
   } catch (err) {

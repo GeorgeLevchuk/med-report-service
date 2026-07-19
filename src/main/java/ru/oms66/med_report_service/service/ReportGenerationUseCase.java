@@ -3,30 +3,34 @@ package ru.oms66.med_report_service.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import java.util.List;
 import ru.oms66.med_report_service.dto.ReportRow;
 import ru.oms66.med_report_service.dto.ReportTree;
 import ru.oms66.med_report_service.export.ExcelReportBuilder;
+import ru.oms66.med_report_service.export.ZipPacker;
 import ru.oms66.med_report_service.repository.MedRepository;
-
-import java.util.List;
 
 @Service
 public class ReportGenerationUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ReportGenerationUseCase.class);
+    private static final String XLSX_ENTRY_NAME = "report.xlsx";
 
     private final MedRepository medRepository;
     private final ReportTreeBuilder reportTreeBuilder;
     private final ExcelReportBuilder excelReportBuilder;
+    private final ZipPacker zipPacker;
 
     public ReportGenerationUseCase(
             MedRepository medRepository,
             ReportTreeBuilder reportTreeBuilder,
-            ExcelReportBuilder excelReportBuilder
+            ExcelReportBuilder excelReportBuilder,
+            ZipPacker zipPacker
     ) {
         this.medRepository = medRepository;
         this.reportTreeBuilder = reportTreeBuilder;
         this.excelReportBuilder = excelReportBuilder;
+        this.zipPacker = zipPacker;
     }
 
     public byte[] generate() {
@@ -48,4 +52,15 @@ public class ReportGenerationUseCase {
         log.info("Отчёт полностью сформирован за {} мс", System.currentTimeMillis() - startedAt);
         return xlsx;
     }
+
+    public byte[] generateZip() {
+        byte[] xlsx = generate();
+
+        long t0 = System.currentTimeMillis();
+        byte[] zip = zipPacker.pack(xlsx, XLSX_ENTRY_NAME);
+        log.info("ZipPacker: {} байт за {} мс", zip.length, System.currentTimeMillis() - t0);
+
+        return zip;
+    }
 }
+

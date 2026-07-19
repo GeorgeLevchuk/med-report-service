@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Typography, Button, Alert, Divider } from 'antd';
+import { Card, Typography, Button, Alert, Divider, Checkbox } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import { fetchReport } from './api';
 
@@ -35,13 +35,14 @@ const LEDGER_ROWS = [
 
 export default function App() {
   const [loading, setLoading] = useState(false);
+  const [zipEnabled, setZipEnabled] = useState(false);
   const [status, setStatus] = useState(null);
 
   const handleGenerate = async () => {
     setStatus(null);
     setLoading(true);
     try {
-      const { blob, filename } = await fetchReport();
+      const { blob, filename } = await fetchReport(zipEnabled);
       saveBlob(blob, filename);
       setStatus({ type: 'success', message: `Отчёт сформирован и сохранён как ${filename}.` });
     } catch (err) {
@@ -87,8 +88,18 @@ export default function App() {
             loading={loading}
             onClick={handleGenerate}
           >
-            {loading ? 'Формируем отчёт…' : 'Сформировать и скачать отчёт'}
+            {loading
+              ? 'Формируем отчёт…'
+              : `Сформировать и скачать отчёт${zipEnabled ? ' (ZIP)' : ''}`}
           </Button>
+
+          <Checkbox
+            checked={zipEnabled}
+            onChange={(e) => setZipEnabled(e.target.checked)}
+            style={{ marginTop: 12 }}
+          >
+            Упаковать в ZIP-архив
+          </Checkbox>
 
           {status && (
             <>
