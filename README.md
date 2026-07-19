@@ -1,6 +1,7 @@
 В папке frontend нужно запустить cmd и ввести такие команды:
-npm install
-npm run build
+-npm install
+
+-npm run build
 
 Это подтянет нужные библиотеки и добавит assets в статику для фронта с React.
 
